@@ -1,9 +1,11 @@
 
 string frame
-uint8[] a
-uint8[] b
-uint8[] c
-uint8[] d
-uint8   width
-uint8   height
+string type
+uint8 quality
+int32[2] a
+int32[2] b
+int32[2] c
+int32[2] d
+uint32   width
+uint32   height
 string data

@@ -30,6 +30,8 @@ class QRTracker():
         
         self.qr_pub = rospy.Publisher('~matches', Percept, queue_size=10)
         
+        self.auto_start = int(rospy.get_param("~start", 0))
+        
         self.running = False
         
         # Text that we search for in a QR code.
@@ -50,6 +52,9 @@ class QRTracker():
         rospy.Service('~set_target', SetTarget, self.set_target)
                 
         rospy.Service('~clear_target', std_srvs.srv.Empty, self.clear_target)
+        
+        if self.auto_start:
+            self.start()
         
         # Start polling the sensors and base controller
         self.rate = int(rospy.get_param("~rate", 60))
@@ -120,7 +125,7 @@ class QRTracker():
         if img:
             return self.normalize_image_cv2(img)
         
-    def _process_video(self, msg):
+    def _process_video(self):
         try:
             while self.running:
                 pil_img = self.get_image_pil()
@@ -128,7 +133,6 @@ class QRTracker():
                     width, height = pil_img.size
                     matches = zb.Image.from_im(pil_img).scan()
                     if matches:
-                        print('matches:', matches)
                         for match in matches:
                             
                             with self._lock:
@@ -139,10 +143,12 @@ class QRTracker():
                             
                             percept = Percept()
                             percept.frame = self.camera_topic
-                            percept.a = tl
-                            percept.b = bl
-                            percept.c = br
-                            percept.d = tr
+                            percept.type = match.type
+                            percept.quality = match.quality
+                            percept.a = list(tl)
+                            percept.b = list(bl)
+                            percept.c = list(br)
+                            percept.d = list(tr)
                             percept.width = width
                             percept.height = height
                             percept.data = match.data

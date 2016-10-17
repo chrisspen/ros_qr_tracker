@@ -3,12 +3,24 @@ ROS QR Tracker
 
 A [QR code](https://en.wikipedia.org/wiki/QR_code) tracking package for [ROS.](http://www.ros.org/)
 
+Installation
+------------
+
+Checkout with git into your Catkin workspace or overlay and then build:
+
+    mkdir -p overlay/src
+    cd overlay/src
+    catkin_init_workspace
+    git clone https://github.com/chrisspen/ros_qr_tracker.git
+    cd ..
+    catkin_make --pkg ros_qr_tracker
+
 Usage
 -----
 
 Run with:
 
-    rosrun ros_qr_tracker qr_tracker.py _topic:=/mycamera/compressed
+    rosrun ros_qr_tracker qr_tracker.py _topic:=/mycamera/image/compressed
 
 On launch, the node is idle. To make it start tracking QR codes, run:
 
@@ -36,10 +48,3 @@ and view this with:
     rosrun rqt_image_view rqt_image_view image:=/webcam/image _image_transport:=compressed
 
 Then print out a QR code, slow place in front of the camera, and confirm messages are broadcast from `/qr_tracker/matches`.
-
-Development
------------
-
-To build, run:
-
-    time catkin_make --pkg ros_qr_tracker
