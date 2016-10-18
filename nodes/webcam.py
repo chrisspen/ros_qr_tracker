@@ -22,7 +22,7 @@ class WebCam():
         
         self._lock = threading.RLock()
         
-        self.image_pub = rospy.Publisher('~image/compressed', CompressedImage, queue_size=10)
+        self.image_pub = rospy.Publisher('~image/compressed', CompressedImage, queue_size=1)
         
         self.video_index = int(rospy.get_param("~index", 0))
         
@@ -65,8 +65,8 @@ class WebCam():
                 self._camera_thread = None
         
     def _process_video(self):
+        video_capture = cv2.VideoCapture(self.video_index)
         try:
-            video_capture = cv2.VideoCapture(self.video_index)
             while self.running:
                 ret, frame = video_capture.read()
                 msg = CompressedImage()
@@ -76,6 +76,9 @@ class WebCam():
                 self.image_pub.publish(msg)
         except rospy.exceptions.ROSInterruptException:
             self.running = False
+        
+        if video_capture:
+            video_capture.release()
 
     def shutdown(self):
         rospy.loginfo('Shutting down...')
