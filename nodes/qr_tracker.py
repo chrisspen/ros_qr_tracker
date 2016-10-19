@@ -37,7 +37,7 @@ class QRTracker():
         
         self.auto_start = int(rospy.get_param("~start", 0))
         
-        self.processing_mode = int(rospy.get_param('~mode', Modes.PUSH))
+        self.processing_mode = int(rospy.get_param('~mode', Modes.PULL))
         
         self.running = False
         
