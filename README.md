@@ -6,6 +6,11 @@ A [QR code](https://en.wikipedia.org/wiki/QR_code) tracking package for [ROS.](h
 Installation
 ------------
 
+Install dependencies:
+
+    sudo apt-get install libffi-dev libffi6 libzbar-dev
+    pip install libzbar-cffi
+
 Checkout with git into your Catkin workspace or overlay and then build:
 
     mkdir -p overlay/src

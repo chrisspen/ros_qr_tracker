@@ -6,8 +6,10 @@ add_message_files(FILES
     Percept.msg
 )
 
-#add_service_files(FILES
-#)
+add_service_files(FILES
+    AddTarget.srv
+    SetTarget.srv
+)
 
 generate_messages(   
     DEPENDENCIES  
