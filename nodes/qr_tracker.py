@@ -21,7 +21,7 @@ from ros_qr_tracker.srv import AddTarget, AddTargetResponse, SetTarget, SetTarge
 
 class Modes:
     PUSH = 1 # faster (~30 fps) but needs more CPU (default)
-    POLL = 2 # slower (~10fps) but uses less CPU
+    PULL = 2 # slower (~10fps) but uses less CPU
 
 class QRTracker():
     
@@ -88,7 +88,7 @@ class QRTracker():
         with self._lock:
             self.running = True
             
-            if self.processing_mode == Modes.POLL:
+            if self.processing_mode == Modes.PULL:
             
                 # Launch thread to poll.
                 if not self._camera_thread:
