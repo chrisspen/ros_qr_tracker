@@ -11,9 +11,10 @@ import std_srvs.srv
 from std_srvs.srv import EmptyResponse
 from sensor_msgs.msg import CompressedImage, Image
 
-import numpy
+import numpy as np
 import libzbar as zb
 import cv2
+from cv_bridge import CvBridge, CvBridgeError
 from PIL import Image as PilImage
 
 from ros_qr_tracker.msg import Percept
@@ -35,6 +36,10 @@ class QRTracker():
         
         self.qr_pub = rospy.Publisher('~matches', Percept, queue_size=10)
         
+        self.images_pub = rospy.Publisher('~images/compressed', CompressedImage, queue_size=1)
+        
+        self.show_matches = int(rospy.get_param("~show_matches", 1))
+        
         self.auto_start = int(rospy.get_param("~start", 0))
         
         self.processing_mode = int(rospy.get_param('~mode', Modes.PULL))
@@ -43,7 +48,11 @@ class QRTracker():
         
         self._frames = 0
         
+        self.last_msg = None
+        
         self._t0 = None
+        
+        self.bridge = CvBridge()
         
         # Text that we search for in a QR code.
         # If this is set, and a QR code is detected that does not contain this text,
@@ -158,9 +167,12 @@ class QRTracker():
     def get_image(self):
         try:
             if 'compressed' in self.camera_topic:
-                return rospy.wait_for_message(self.camera_topic, CompressedImage, timeout=1)
+                msg = rospy.wait_for_message(self.camera_topic, CompressedImage, timeout=1)
             else:
-                return rospy.wait_for_message(self.camera_topic, Image, timeout=1)
+                msg = rospy.wait_for_message(self.camera_topic, Image, timeout=1)
+            with self._lock:
+                self.last_msg = msg
+            return msg
         except rospy.exceptions.ROSException:
             return
             
@@ -170,7 +182,7 @@ class QRTracker():
     def normalize_image_cv2(self, msg):
         if isinstance(msg, CompressedImage):
             pil_image = self.normalize_compressed_image(msg)
-            cv_image = numpy.array(pil_image)
+            cv_image = np.array(pil_image)
             return cv_image
         else:
             cv_image = self.bridge.imgmsg_to_cv2(msg, "bgra8")
@@ -195,9 +207,17 @@ class QRTracker():
         
     def _process_video(self, msg=None):
         try:
+            
+            if msg:
+                with self._lock:
+                    self.last_msg = msg
+            
             while self.running:
                 pil_img = self.get_image_pil(msg=msg)
                 if pil_img:
+                    
+                    if self.show_matches:
+                        cv_img = cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
                     
                     # Track FPS.
                     if not self._frames:
@@ -208,6 +228,7 @@ class QRTracker():
                         
                     width, height = pil_img.size
                     matches = zb.Image.from_im(pil_img).scan()
+                    
                     if matches:
                         for match in matches:
                             
@@ -216,6 +237,12 @@ class QRTracker():
                                     continue
                             
                             tl, bl, br, tr = match.locator
+
+                            if self.show_matches:
+                                cv2.line(cv_img, tl, bl, (0, 255, 0), 3)
+                                cv2.line(cv_img, bl, br, (0, 255, 0), 3)
+                                cv2.line(cv_img, br, tr, (0, 255, 0), 3)
+                                cv2.line(cv_img, tr, tl, (0, 255, 0), 3)
                             
                             percept = Percept()
                             percept.frame = self.camera_topic
@@ -228,8 +255,12 @@ class QRTracker():
                             percept.width = width
                             percept.height = height
                             percept.data = match.data
-                            
                             self.qr_pub.publish(percept)
+                    
+                    if self.show_matches:
+                        self.images_pub.publish(self.bridge.cv2_to_compressed_imgmsg(
+                            cv_img,
+                            dst_format='jpg'))
                 
                 # If we're not a thread and have been given a single message to process,
                 # exit immediately.
