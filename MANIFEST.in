@@ -1,0 +1,8 @@
+include package.xml
+include pip-requirements.txt
+include pip-requirements-tests.txt
+recursive-include tests *
+recursive-include srv *
+recursive-include scripts *
+recursive-include nodes *
+recursive-include msg *

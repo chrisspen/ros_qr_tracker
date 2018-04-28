@@ -3,6 +3,8 @@
 *.lo
 *.o
 *.obj
+*.pyo
+*.pyc
 
 # Precompiled Headers
 *.gch
@@ -29,3 +31,6 @@
 *.app
 /.project
 /.pydevproject
+*.out
+*.geany
+.tox

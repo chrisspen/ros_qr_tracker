@@ -4,11 +4,12 @@ from __future__ import print_function
 import os
 import threading
 
+import numpy as np
+
 import rospy
 import std_srvs.srv
 from sensor_msgs.msg import CompressedImage, Image
 
-import numpy as np
 import cv2
 
 class WebCam():
@@ -27,6 +28,9 @@ class WebCam():
         self.video_index = int(rospy.get_param("~index", 0))
         
         self.auto_start = int(rospy.get_param("~start", 0))
+        
+        self.width = int(rospy.get_param("~width", 800))
+        self.height = int(rospy.get_param("~height", 600))
         
         self.running = False
         
@@ -66,9 +70,16 @@ class WebCam():
         
     def _process_video(self):
         video_capture = cv2.VideoCapture(self.video_index)
+        video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.width)
+        video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.height)
         try:
             while self.running:
                 ret, frame = video_capture.read()
+                
+                # width = video_capture.get(cv2.CAP_PROP_FRAME_WIDTH)
+                # height = video_capture.get(cv2.CAP_PROP_FRAME_HEIGHT)
+                # print('size:', width, height)
+                
                 msg = CompressedImage()
                 msg.header.stamp = rospy.Time.now()
                 msg.format = "jpeg"

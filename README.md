@@ -8,7 +8,7 @@ Installation
 
 Install dependencies:
 
-    sudo apt-get install libffi-dev libffi6 libzbar-dev
+    sudo apt-get install libffi-dev libffi6 libzbar-dev python-catkin-pkg
     pip install libzbar-cffi
 
 Checkout with git into your Catkin workspace or overlay and then build:
@@ -47,9 +47,20 @@ To test with a webcam run:
 
     rosrun ros_qr_tracker webcam.py _start:=1
 
+To create a QR code:
+
+    create_qr_code.py "some text" myqrcode.jpg
+
 and view this with:
 
     sudo apt-get install ros-kinetic-rqt-image-view
     rosrun rqt_image_view rqt_image_view image:=/webcam/image _image_transport:=compressed
 
 Then print out a QR code, slow place in front of the camera, and confirm messages are broadcast from `/qr_tracker/matches`.
+
+Testing
+-------
+
+Run tests locally with:
+
+    ./test.sh

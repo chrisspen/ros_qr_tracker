@@ -1,2 +1,2 @@
 #!/bin/bash
-pylint --rcfile=pylint.rc nodes scripts
+pylint --rcfile=pylint.rc nodes scripts tests setup.py
