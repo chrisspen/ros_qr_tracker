@@ -16,43 +16,43 @@ class WebCam():
     """
     A dirt simple broadcasting node of a compressed webcam video stream.
     """
-    
+
     def __init__(self):
-        
+
         rospy.init_node('webcam', log_level=rospy.DEBUG)
-        
+
         self._lock = threading.RLock()
-        
+
         self.image_pub = rospy.Publisher('~image/compressed', CompressedImage, queue_size=1)
-        
+
         self.video_index = int(rospy.get_param("~index", 0))
-        
+
         self.auto_start = int(rospy.get_param("~start", 0))
-        
+
         self.width = int(rospy.get_param("~width", 800))
         self.height = int(rospy.get_param("~height", 600))
-        
+
         self.running = False
-        
+
         # Handle of the main processing thread.
         self._camera_thread = None
-        
+
         # Cleanup when termniating the node.
         rospy.on_shutdown(self.shutdown)
-        
+
         rospy.Service('~start', std_srvs.srv.Empty, self.start)
-                
+
         rospy.Service('~stop', std_srvs.srv.Empty, self.stop)
-        
+
         if self.auto_start:
             self.start()
-        
+
         # Start polling the sensors and base controller.
         self.rate = int(rospy.get_param("~rate", 60))
         r = rospy.Rate(self.rate)
         while not rospy.is_shutdown():
             r.sleep()
- 
+
     def start(self, msg=None):
         with self._lock:
             if not self.running:
@@ -60,14 +60,14 @@ class WebCam():
                 self._camera_thread = threading.Thread(target=self._process_video)
                 self._camera_thread.daemon = True
                 self._camera_thread.start()
- 
+
     def stop(self, msg=None):
         with self._lock:
             if self._camera_thread:
                 self.running = False
                 self._camera_thread.join()
                 self._camera_thread = None
-        
+
     def _process_video(self):
         video_capture = cv2.VideoCapture(self.video_index)
         video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.width)
@@ -75,11 +75,11 @@ class WebCam():
         try:
             while self.running:
                 ret, frame = video_capture.read()
-                
+
                 # width = video_capture.get(cv2.CAP_PROP_FRAME_WIDTH)
                 # height = video_capture.get(cv2.CAP_PROP_FRAME_HEIGHT)
                 # print('size:', width, height)
-                
+
                 msg = CompressedImage()
                 msg.header.stamp = rospy.Time.now()
                 msg.format = "jpeg"
@@ -87,7 +87,7 @@ class WebCam():
                 self.image_pub.publish(msg)
         except rospy.exceptions.ROSInterruptException:
             self.running = False
-        
+
         if video_capture:
             video_capture.release()
 
@@ -95,6 +95,6 @@ class WebCam():
         rospy.loginfo('Shutting down...')
         self.running = False
         rospy.loginfo('Done.')
-        
+
 if __name__ == '__main__':
     WebCam()

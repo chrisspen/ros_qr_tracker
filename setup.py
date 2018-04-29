@@ -15,7 +15,7 @@ def get_reqs(*fns):
                 continue
             lst.append(package.strip())
     return lst
-    
+
 d = generate_distutils_setup()
 print('d0:', d)
 

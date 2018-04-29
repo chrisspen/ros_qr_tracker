@@ -10,7 +10,7 @@ import sys
 import qrcode
 
 if __name__ == '__main__':
-    
+
     data = sys.argv[1]
     fn = sys.argv[2]
     img = qrcode.make(data)

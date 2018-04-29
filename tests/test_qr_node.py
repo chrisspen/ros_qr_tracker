@@ -8,7 +8,7 @@ PKG = 'ros_qr_tracker'
 roslib.load_manifest(PKG)
 
 class Tests(unittest.TestCase):
-    
+
     def test_one_equals_one(self):
         self.assertEquals(1, 1)
 
